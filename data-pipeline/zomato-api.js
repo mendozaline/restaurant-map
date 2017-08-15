@@ -1,4 +1,5 @@
 const fetch = require('node-fetch')
+var fs = require('fs')
 
 const cityJSON = require('./Banks-restaurants-inspections.json')
 //console.log('\n', cityJSON)
@@ -6,10 +7,18 @@ const cityJSON = require('./Banks-restaurants-inspections.json')
 
 const entityId = '10612' // Banks, OR
 //const entityId = '10631' // Hillsboro, OR
+//const entityId = '10614' // Beaverton, OR
 const entityType = 'city'
-const restaurantAddress = cityJSON.Banks[5].address
+const restaurantAddress = cityJSON.Banks[5].address 
+// 'Main Street Pizza'
+
+//console.log('restaurantAddress:', restaurantAddress)
+//const restaurantName = cityJSON.Beaverton[33].name // 'Main Street Pizza'
+//console.log('restaurantName:', restaurantName)
+
 const url = `https://developers.zomato.com/api/v2.1/search?entity_id=${entityId}&entity_type=${entityType}&q=${restaurantAddress}&order=asc`
-console.log('\n' + url)
+
+//console.log('\n' + url)
 
 
 fetch(url, {
@@ -24,25 +33,29 @@ fetch(url, {
   const resultsFound = json.results_found
 
   if (resultsFound > 0) {
-    console.log('\nResults found: ' + resultsFound)
+    console.log('\nresults found: ' + resultsFound)
+    //console.log('\n', json)
     //console.log('\n', json.restaurants[1])
     return json.restaurants
-  } else {
-    console.log('\nNo match found')
-    return
   }
 
 })
 .then(results => {
-  results.map(rest => {
+  //console.log('\nresults: ', results)
+  let jsonArray = []
+
+  let final = results.forEach(rest => {
+    //console.log('\n\nREST:', rest)
     const zomatoName = rest.restaurant.name
+    //console.log('zomatoName: ', zomatoName)
     const countyName = cityJSON.Banks[5].name
+    //console.log('countyName: ', countyName)
 
     if (zomatoName == countyName) {
-      console.log('\nMatch')
+      //console.log('\nMatch')
       const cuisines = rest.restaurant.cuisines.split(',')
 
-      const geoJSON = `{
+      geoJSON = `{
         "type": "Feature",
         "properties": {
           "name": "${rest.restaurant.name}",
@@ -55,13 +68,22 @@ fetch(url, {
         }
       }`
 
-      console.log('\ngeoJSON: ', geoJSON)
-    } else {
-      console.log('\nNope')
-    }
+      console.log('\nGEOJSON: ', geoJSON)
+      jsonArray.push(geoJSON)
+    } // end if
 
   }) // end map
 
+  return jsonArray
+})
+.then( jsonArray => {
+  console.log('\njsonARRAY: ', jsonArray[0])
+  console.log('\n'+ typeof(jsonArray[0]))
+  //console.log('\nPARSE: ', JSON.parse(jsonArray))
+  //console.log('\n'+ typeof(JSON.parse(jsonArray)))
+
+  fs.writeFile('test.geojson', jsonArray)
+//  return 
 }) // end then
 
 
