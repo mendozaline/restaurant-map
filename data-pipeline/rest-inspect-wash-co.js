@@ -1,8 +1,8 @@
 (function () {
-  const city = 'Beaverton'
+  const city = 'Banks'
   const city1 = city.split(' ')
   const city2 = city1[0] + '_' + city1[1]
-  console.log(city2)
+
   const cityLength = city.length
 
   const searchResults = document.querySelector('#accordion') // -> selected div w/ results
@@ -29,7 +29,7 @@
     const cityIndex = info.lastIndexOf(city) // -> index of city in string searching backwards
 
     if (found5 != -1) {
-      console.log('5 digit address')
+      //console.log('5 digit address')
       const restaurantName = info.slice(0, found5)
       const streetAddress = info.slice(found5, cityIndex).trim()
       const state = 'OR'
@@ -48,7 +48,7 @@
       restaurantArray.push(restaurantObj)
 
     } else if (found4 != -1) {
-      console.log('4 digit address')
+      //console.log('4 digit address')
       const restaurantName = info.slice(0, found4)
       const streetAddress = info.slice(found4, cityIndex).trim()
       const state = 'OR'
@@ -67,7 +67,7 @@
 
     }
     else { 
-      console.log('3 digit address')
+      //console.log('3 digit address')
       const restaurantName = info.slice(0, found3)
       const streetAddress = info.slice(found3, cityIndex).trim()
       const state = 'OR'
@@ -130,7 +130,7 @@
       }
 
       const inspectDate = row[3].split('</td>')[0].trim()
-      
+
       let scoreString
       if (index2 != tableData.length - 1) {
         //console.log('comma')
