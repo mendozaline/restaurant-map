@@ -1,4 +1,4 @@
-## Washington County Restaurant Map
+## Washington County, Oregon Restaurant Map
 
 ### Map Proposal
 Most people don't like to get food poisoning when they go out to eat. However, they probably aren't sure how to differentiate between sanitary and dirty restaurants besides using superficial criteria. A more rigorous way to address this problem is by making health inspection scores more easily available to people in a searchable, interactive map. So before they go to a restaurant, they can quickly look up its score and decide if it's safe.
@@ -11,12 +11,7 @@ Finally, I want to show graphically in a line chart how restaurants do over time
 
 I will be using data from [Washington County's Health and Human Services deperatment](http://www.co.washington.or.us/HHS/EnvironmentalHealth/FoodSafety/restaurant-inspections.cfm). I will also be using the [Zomato API](https://developers.zomato.com/), which has more information about restaurants. My goal is to combine data from both to make a new GeoJSON that I can map, but only includes the data I need for either source. 
 
------------------------------------------------------------------------
-
-### 2a. Data Pipeline 
-
-#### Data Pipeline Proposal
-
+### Data Pipeline Proposal
 I will start by scraping restaurant score data from [Washington County's Restaurant Inspections](http://www.co.washington.or.us/HHS/EnvironmentalHealth/FoodSafety/restaurant-inspections.cfm) site. I am doing this by writing an immediately-invoked function expression, and then copying and pasting it into the console of the site. This will create a list of elements from the search results, which will then be parsed and saved as a JSON file. I will do this for each city.
 
 I then will take each of these JSON files and match it against the [Zomato API](https://developers.zomato.com/api). This API has restaurant data such as customer ratings, types of cuisine served, price range, and most importantly latitude and longitude location data. Rather than geocode the addresses directly from the restaurant inspection site directly, I'm going to search for each restaurant with the Zomato API and combine it with the restaurant inspection data to create a new GeoJSON file.
