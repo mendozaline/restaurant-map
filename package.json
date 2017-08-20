@@ -6,8 +6,12 @@
     "react-scripts": "1.0.11"
   },
   "dependencies": {
+    "d3": "^4.10.0",
+    "fuse.js": "^3.0.5",
+    "leaflet": "^1.2.0",
     "react": "^15.6.1",
-    "react-dom": "^15.6.1"
+    "react-dom": "^15.6.1",
+    "react-leaflet": "^1.5.0"
   },
   "scripts": {
     "start": "react-scripts start",
