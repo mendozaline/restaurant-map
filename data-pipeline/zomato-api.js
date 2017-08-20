@@ -1,97 +1,146 @@
 const fetch = require('node-fetch')
-var fs = require('fs')
+const fs = require('fs')
+const Fuse = require('fuse.js')
 
 const cityJSON = require('./Banks-restaurants-inspections.json')
-//console.log('\n', cityJSON)
-//console.log('\n', cityJSON.Banks[4].name)
 
-const entityId = '10612' // Banks, OR
-//const entityId = '10631' // Hillsboro, OR
-//const entityId = '10614' // Beaverton, OR
-const entityType = 'city'
-const restaurantAddress = cityJSON.Banks[5].address 
-// 'Main Street Pizza'
+//Create array of objs to query zomato api by address
+const searchArray = cityJSON['Banks'].map( rest => {
+  const entityId = '10612' // Banks, OR
+  const entityType = 'city'
+  const restaurantAddress = rest.address
+  //console.log('\nREST ADDRESS: ', restaurantAddress)
 
-//console.log('restaurantAddress:', restaurantAddress)
-//const restaurantName = cityJSON.Beaverton[33].name // 'Main Street Pizza'
-//console.log('restaurantName:', restaurantName)
+  const restaurantName = rest.name
+  const restaurantInspections = rest.inspections
 
-const url = `https://developers.zomato.com/api/v2.1/search?entity_id=${entityId}&entity_type=${entityType}&q=${restaurantAddress}&order=asc`
+  const restURL = `https://developers.zomato.com/api/v2.1/search?entity_id=${entityId}&entity_type=${entityType}&q=${restaurantAddress}&order=asc`
+  //console.log('\nURL: ', url)
 
-//console.log('\n' + url)
+  return {  restURL: restURL,
+            restName: restaurantName,
+            restAdd: restaurantAddress,
+            restInspect: restaurantInspections
+         }
+}) //end map
+//console.log('\nSEARCH array: ', searchArray)
 
 
-fetch(url, {
-  method: 'GET',
-  headers: {
-    'Accept': 'application/json',
-    'user-key': '38a345884982761b67d5a78e8618b707',
-  },
+let finalFeature = ''
+let count = 0
+
+//Create feature for each restaurant
+function getFeature(cityObj) {
+  console.log('COUNT:', count)
+
+  let searched = cityObj[count]
+
+  return fetch(searched.restURL, {
+    method: 'GET',
+    headers: {
+      'Accept': 'application/json',
+      'User-Key': '38a345884982761b67d5a78e8618b707',
+    },
+  }).then(response => {
+    //1. Return response as json
+    return response.json() 
+  }).then(json => {
+    //2. Check number of results found, return array of objs
+    const resultsFound = json.results_found
+    console.log('\n\nNUMBER OF RESULTS:', resultsFound)
+
+    if(resultsFound > 0) {
+      return json.restaurants
+    } else {
+      console.log('\n\nno results')
+      return
+    }
+
+  }).then(results => {
+    //3. Fuzzy search array for restaurant name, return obj
+
+    //console.log('\nRESULTS ARRAY: ', results)
+
+    const inspectRestName = searched.restName
+    console.log('SEARCH REST NAME: ', inspectRestName)
+
+    const options = {
+      shouldSort: true,
+      threshold: 0.65, //0.0 perfect match, 1.0 match everything
+      keys: [
+        'restaurant.name' //keys that are searched
+      ],
+      //id: 'restaurant.name', //result will be list of id
+    }
+
+    const fuse = new Fuse(results, options)
+
+    //resultFuse is array of matching objs
+    const resultFuse = fuse.search(inspectRestName)
+
+    //console.log('FUSE results: ', resultFuse)
+    return resultFuse
+  }).then(match => {
+    //4. Create feature
+
+    const type = typeof(match[0]) //check if undefined
+    //console.log('\nTYPE: ', type)
+
+    if(type != 'undefined') {
+      const latitude = match[0].restaurant.location.latitude
+      //console.log('\n1: ', latitude)
+      const longitude = match[0].restaurant.location.longitude
+      //console.log('\n2: ', longitude)
+      const inspections = JSON.stringify(searched.restInspect)
+      //console.log('\n3: ', inspections)
+      //console.log(typeof(inspections))
+      const restaurantName = match[0].restaurant.name
+      //console.log('\n4: ', restaurantName)
+
+      let cuisineSplit = match[0].restaurant.cuisines.split(',')
+      let cuisines = []
+      for(let i = 0; i < cuisineSplit.length; i++) {
+        cuisines.push('"' + cuisineSplit[i].trim() + '"')
+      }
+      //console.log('\n5: ', cuisines)
+
+      let feature = `{"type": "Feature","geometry": {"type": "Point","coordinates": [${longitude},${latitude}]},"properties": {"inspections": ${inspections},"name": "${restaurantName}","cuisines": [${cuisines}]}}`
+
+      //console.log('\nFT: ', feature) -> string
+
+      return feature
+    } else {
+      return
+    } // end if/else
+
+  }).then(ft => {
+    //5. Add feature string to finalFeature string
+    count++
+
+    if(ft != undefined) {
+      if(count == searchArray.length) {
+        finalFeature += ft
+      } else {
+        finalFeature += ft + ','        
+      }
+    }
+    //console.log('FF:', finalFeature)
+
+    return count < searchArray.length ?
+            getFeature(searchArray) : 'done!'
+
+  }) //final then
+
+} //end getFeature
+
+
+getFeature(searchArray).then(finalResult => {
+  console.log('\nDone and', finalResult)
+
+  //console.log('\nfinalFeature: ', finalFeature)
+
+  let geoJSONString = `{"type": "FeatureCollection","features":[${finalFeature}]}`
+
+  //console.log('\ngeoJSON: ', geoJSONString)
+  fs.writeFile('banks.geojson', geoJSONString.trim())
 })
-.then(response => { return response.json() })
-.then(json => {
-  const resultsFound = json.results_found
-
-  if (resultsFound > 0) {
-    console.log('\nresults found: ' + resultsFound)
-    //console.log('\n', json)
-    //console.log('\n', json.restaurants[1])
-    return json.restaurants
-  }
-
-})
-.then(results => {
-  //console.log('\nresults: ', results)
-  let jsonArray = []
-
-  let final = results.forEach(rest => {
-    //console.log('\n\nREST:', rest)
-    const zomatoName = rest.restaurant.name
-    //console.log('zomatoName: ', zomatoName)
-    const countyName = cityJSON.Banks[5].name
-    //console.log('countyName: ', countyName)
-
-    if (zomatoName == countyName) {
-      //console.log('\nMatch')
-      const cuisines = rest.restaurant.cuisines.split(',')
-
-      geoJSON = `{
-        "type": "Feature",
-        "properties": {
-          "name": "${rest.restaurant.name}",
-          "cuisines": ["${cuisines[0]}", "${cuisines[1].trim()}"],
-          "popupContent": "${rest.restaurant.location.address}"
-        },
-        "geometry": {
-          "type": "Point",
-          "coordinates": [${rest.restaurant.location.longitude}, ${rest.restaurant.location.latitude}]
-        }
-      }`
-
-      console.log('\nGEOJSON: ', geoJSON)
-      jsonArray.push(geoJSON)
-    } // end if
-
-  }) // end map
-
-  return jsonArray
-})
-.then( jsonArray => {
-  console.log('\njsonARRAY: ', jsonArray[0])
-  console.log('\n'+ typeof(jsonArray[0]))
-  //console.log('\nPARSE: ', JSON.parse(jsonArray))
-  //console.log('\n'+ typeof(JSON.parse(jsonArray)))
-
-  fs.writeFile('test.geojson', jsonArray)
-//  return 
-}) // end then
-
-
-
-
-
-
-
-
-
-
