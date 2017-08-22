@@ -1,14 +1,14 @@
-(function () {
-  const city = 'Banks'
-  const city1 = city.split(' ')
-  const city2 = city1[0] + '_' + city1[1]
-
+(function (exports) {
+  exports.getCity = function(cityName) {
+  const city = cityName
   const cityLength = city.length
 
-  const searchResults = document.querySelector('#accordion') // -> selected div w/ results
-  const allRestaurants = searchResults.querySelectorAll('div') // -> NodeList of all divs in searcgResults
+  const searchResults = document.querySelector('#accordion')
+  // -> selected div w/ results
+  const allRestaurants = searchResults.querySelectorAll('div')
+  // -> NodeList of all divs in searcgResults
 
-  console.clear()
+  //console.clear()
 
 
   const restaurantHeader = allRestaurants[0].querySelectorAll('h3') // -> NodeList of all restaurant names and addresses from first div
@@ -30,10 +30,34 @@
 
     if (found5 != -1) {
       //console.log('5 digit address')
-      const restaurantName = info.slice(0, found5)
+      //const restaurantName = info.slice(0, found5)
+
+      let restaurantName;
+
+      const double = /["]/g
+      const foundDQ = info.search(double)
+      // -> index if found, -1 if not
+      console.log(foundDQ)
+      if (foundDQ !== -1) {
+        console.log('IF!')
+        const restaurantNameF = info.replace(double, "")
+        restaurantName = restaurantNameF.slice(0, found5 - 2)
+        // Because double quotes removed
+        console.log('\nrestaurantName: ', restaurantName)
+      } else {
+        restaurantName = info.slice(0, found5)
+      }
+
+
       const streetAddress = info.slice(found5, cityIndex).trim()
       const state = 'OR'
-      const zipCode = info.slice(cityIndex + cityLength).trim() // -> string
+
+      const zipCodeMore5 = info.slice(cityIndex + cityLength).trim()
+      // -> string
+      const zipCodeMore = zipCodeMore5.slice(0,5)
+      const zipCode = zipCodeMore
+
+      //const zipCode = info.slice(cityIndex + cityLength).trim() // -> string
       //console.log(zipCode)
       //console.log(typeof(zipCode))
       const restaurantObj = `{
@@ -52,7 +76,13 @@
       const restaurantName = info.slice(0, found4)
       const streetAddress = info.slice(found4, cityIndex).trim()
       const state = 'OR'
-      const zipCode = info.slice(cityIndex + cityLength).trim() // -> string
+
+      const zipCodeMore5 = info.slice(cityIndex + cityLength).trim()
+      // -> string
+      const zipCodeMore = zipCodeMore5.slice(0,5)
+      const zipCode = zipCodeMore
+      //console.log('\nzipCode', zipCodeMore)
+
 
       const restaurantObj = `{
         "name": "${restaurantName}", 
@@ -65,10 +95,28 @@
       //const parsedRestaurantObj = JSON.parse(restaurantObj)
       restaurantArray.push(restaurantObj)
 
-    }
-    else { 
+    } else if (found3 != -1) {
       //console.log('3 digit address')
-      const restaurantName = info.slice(0, found3)
+
+      let restaurantName;
+
+      const double = /["]/g
+      const foundDQ = info.search(double)
+      // -> index if found, -1 if not
+      console.log(foundDQ)
+      if (foundDQ !== -1) {
+        console.log('IF!')
+
+        const restaurantNameF = info.replace(double, "")
+        restaurantName = restaurantNameF.slice(0, found3 - 2)
+        // Because double quotes removed
+        console.log('\nrestaurantName: ', restaurantName)
+      } else {
+        restaurantName = info.slice(0, found3)
+      }
+
+      // info.slice(0, found3)
+      //console.log('\nrestaurantName', restaurantName)
       const streetAddress = info.slice(found3, cityIndex).trim()
       const state = 'OR'
       const zipCode = info.slice(cityIndex + cityLength).trim() // -> string
@@ -83,7 +131,29 @@
       //console.log('parsed\n', JSON.parse(restaurantObj))
       //const parsedRestaurantObj = JSON.parse(restaurantObj)
       restaurantArray.push(restaurantObj)
-    }
+    } else {
+      //console.log('No!' + index)
+      const reExd = /\s\d\s/ // -> 3 digit number w/ spaces on sides
+      const foundD = info.search(reExd) // -> index if found, -1 if not
+      const restaurantName = info.slice(0, foundD)
+      const streetAddress = info.slice(found3, cityIndex).trim()
+      const state = 'OR'
+      const zipCode = info.slice(cityIndex + cityLength).trim() // -> string
+      console.log('\n' + restaurantName,
+                  '\n' + streetAddress,
+                  '\n' + state,
+                  '\n' + zipCode + '\n')
+
+      const restaurantObj = `{
+        "name": "${restaurantName}",
+        "address": "${restaurantName}",
+        "city": "${restaurantName}",
+        "stateAbrev": "${state}",
+        "zipCode": ${zipCode},`
+      //console.log('\nrestO:', restaurantObj)
+      restaurantArray.push(restaurantObj)
+
+    } // end else
 
   }) // end forEach
 
@@ -164,12 +234,21 @@
   console.log('\n')
   console.log('2:restaurantArray - ', restaurantArray)
   console.log('\n')
+  //console.log(restaurantArray.length)
   console.log('Did you change the city?')
 
-  const finalArray = restaurantArray.map(restString => {
-//    console.log(restString)
-//    console.log(JSON.parse(restString))
-    return JSON.parse(restString)
+  const finalArray = restaurantArray.map((restString, i) => {
+    //console.log('\n' + i + ': '+ restString)
+    //console.log(JSON.parse(restString))
+    var yes = JSON.parse(restString)
+    if (yes) {
+      console.log('\n' + i + ': '+ restString)
+      //REMOVE
+    } else {
+      //console.log('No!')
+    }
+
+    return yes
   }) // end map
 
   console.log('3: finalArray - ', finalArray)
@@ -186,14 +265,27 @@
   console.log('5: json11 - ', json11)
 
   const final = JSON.stringify(json11)
-  console.log('6: stringify - ', final)
+//  console.log('6: stringify - ', final)
+
+  let cityJSON;
+  if (city.search(' ') != -1) {
+    console.log('\ncity: ', city)
+    const city1 = city.split(' ')
+    const city2 = city1[0] + '-' + city1[1];
+    cityJSON = city2
+  } else {
+    cityJSON = city
+  }
 
   const a = document.createElement('a')
   a.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(final)
-  a.download = `${city}-restaurants-inspections.json`
+  a.download = `${cityJSON}-restaurants-inspections.json`
   document.body.appendChild(a)
   a.click()
   document.body.removeChild(a)
 
-}).call(this)
+}//end exports
 
+})(typeof window === "undefined" || window === null ? global.rest = {} : this.rest = {})
+
+//rest.getCity('Banks')
