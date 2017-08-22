@@ -5,6 +5,10 @@ body {
 }
 
 .leaflet-container {
-    height: 750px;
-    width: 100%;
+  height: 750px;
+  width: 100%;
+}
+.popups{
+  font-size: 20px;
+
 }
