@@ -43,7 +43,7 @@ function getFeature(cityObj) {
     },
   }).then(response => {
     //1. Return response as json
-    return response.json() 
+    return response.json()
   }).then(json => {
     //2. Check number of results found, return array of objs
     const resultsFound = json.results_found
@@ -121,7 +121,7 @@ function getFeature(cityObj) {
       if(count == searchArray.length) {
         finalFeature += ft
       } else {
-        finalFeature += ft + ','        
+        finalFeature += ft + ','
       }
     }
     //console.log('FF:', finalFeature)
