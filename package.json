@@ -6,6 +6,7 @@
     "react-scripts": "1.0.11"
   },
   "dependencies": {
+    "@mapbox/geojson-merge": "^1.0.2",
     "d3": "^4.10.0",
     "fuse.js": "^3.0.5",
     "leaflet": "^1.2.0",
