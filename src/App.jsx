@@ -9,6 +9,7 @@ class App extends Component {
 
     this.dropdownSelect = this.dropdownSelect.bind(this)
     this.onResize = this.onResize.bind(this)
+    this.onClick = this.onClick.bind(this)
 
     this.state = {
       lat: 45.4889,
@@ -38,6 +39,18 @@ class App extends Component {
     this.setState({
       width: window.innerWidth * 0.975,
       height: window.innerWidth / 9
+    })
+  }
+
+  onClick(event) {
+    event.preventDefault()
+    //console.log('e.t', event.target)
+    //console.log('lat:', event.target.dataset.lat)
+
+    this.setState({
+      lng: event.target.dataset.lon,
+      lat: event.target.dataset.lat,
+      zoom: 16
     })
   }
 
