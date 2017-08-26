@@ -8,6 +8,7 @@ class App extends Component {
     super()
 
     this.dropdownSelect = this.dropdownSelect.bind(this)
+    this.onResize = this.onResize.bind(this)
 
     this.state = {
       lat: 45.4889,
@@ -33,6 +34,13 @@ class App extends Component {
     })
   }
 
+  onResize() {
+    this.setState({
+      width: window.innerWidth * 0.975,
+      height: window.innerWidth / 9
+    })
+  }
+
   componentDidMount() {
     console.log('cDM')
     let cmp = this
@@ -48,6 +56,9 @@ class App extends Component {
         })
 
       }) //end await
+
+    window.addEventListener('resize', this.onResize, false)
+    this.onResize()
 
   }
 
