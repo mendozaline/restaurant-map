@@ -7,6 +7,8 @@ class App extends Component {
   constructor() {
     super()
 
+    this.dropdownSelect = this.dropdownSelect.bind(this)
+
     this.state = {
       lat: 45.4889,
       lng: -122.806377,
@@ -18,6 +20,18 @@ class App extends Component {
     } //end of state
 
   } //end constructor
+
+  dropdownSelect(event) {
+    event.preventDefault()
+    //console.log('evt', event.target)
+    let name = event.target.name  //'cuisine'
+    let value = event.target.value
+    //console.log(name,value)
+
+    this.setState({
+      [name]: value
+    })
+  }
 
   componentDidMount() {
     console.log('cDM')
@@ -49,6 +63,24 @@ class App extends Component {
     //console.log('points:', this.state.points)
     //console.log('state.cuisine:', this.state.cuisine)
     console.log('w', this.state.width, 'h', this.state.height)
+
+    /* create array of cuisines to filter */
+    const cuisinesArray = pts.features.map(cuisine => {
+      const firstCuisine = cuisine.properties.cuisines[0]
+      return firstCuisine
+    }).filter((unique, index, array) => {
+      return array.indexOf(unique) === index
+    }).sort()
+    //console.log('cuisinesArray:', cuisinesArray)
+
+    /* dropdown menu options */
+    const cuisinesOptions = cuisinesArray.map((cuisine, index) => {
+      return (
+        <option key={index} value={cuisine}>
+          {cuisine}
+        </option>
+      )
+    })
 
     /* filter data */
     const filterData = (cuisineSelected) => {
@@ -130,6 +162,16 @@ class App extends Component {
 
     return (
       <div>
+        <select
+          name={'cuisine'}
+          value={this.state.cuisine}
+          onChange={this.dropdownSelect}>
+          <option key={0} value={'All'}>
+            Everything
+          </option>
+          {cuisinesOptions}
+        </select>
+
         <Map center={position} zoom={this.state.zoom}>
           <TileLayer
             url="http://stamen-tiles-{s}.a.ssl.fastly.net/toner/{z}/{x}/{y}.{ext}"
