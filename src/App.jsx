@@ -101,6 +101,26 @@ class App extends Component {
 
 
     /* d3 functions */
+    const findMinMax = (data) => {
+      return d3.extent(data, (d) => {
+        return d.properties.inspections[0].inspectScore
+      })
+    }
+    const max = findMinMax(this.state.points.features)[1]
+    //console.log('max', max)
+
+    const padding = {left: 20, right: 20, bottom: 2.5, top: 15}
+
+    const xScale = d3.scaleLinear()
+        .domain([69, max])
+        .range([0 + padding.left,
+                this.state.width - padding.right])
+
+    const yScale = d3.scaleLinear()
+      .domain([0, 5])
+      .range([this.state.height - padding.bottom, //bottom
+              0 + padding.top]) //top
+
     let getColor = d3.scaleThreshold()
       .domain([70, 80, 90, 100])
       .range(['dimGray', 'crimson', 'darkOrange', 'gold', 'limeGreen'])
@@ -156,7 +176,49 @@ class App extends Component {
           </Popup>
         </CircleMarker>
       )
-    })
+    }) //end circlem-akers
+
+
+    /* chart circles */
+    const scatterDots = cuisineData.map((feat, index) => {
+      const score = feat.properties.inspections[0].inspectScore
+      let inspectScore
+      if(score !== "Not scored") {
+        inspectScore = score
+      }
+      else {
+        inspectScore = 69  //lower than min score possible
+      }
+
+      const lat = feat.geometry.coordinates[1]
+      const lon = feat.geometry.coordinates[0]
+
+      const restName = feat.properties.name
+      const yelpRating = feat.properties.yelpRating
+
+      //const jitter = (Math.random() * 0.5) - 1
+      //console.log(parseFloat(jitter.toFixed(2)))
+
+      return (
+        <circle
+          key={"sc-" + index}
+          fill={getColor(inspectScore)}
+          cx={xScale(inspectScore)} //+ jitter)
+          cy={yScale(yelpRating)}
+          r={9.5}
+          opacity={0.25}
+          onClick={this.onClick}
+          data-lat={lat}
+          data-lon={lon}
+          >
+          <title>
+            Name: {restName},
+            Health score: {inspectScore !== 69 ? inspectScore : 'Not scored'},
+            Yelp Score: {yelpRating}
+          </title>
+        </circle>
+      )
+    }) //end chart
 
     const position = [this.state.lat, this.state.lng]
 
@@ -184,6 +246,11 @@ class App extends Component {
 
           { mapDots }
         </Map>
+
+        <svg width={this.state.width} height={this.state.height}>
+          { scatterDots }
+        </svg>
+
       </div>
 
     ) // end return
