@@ -1,12 +1,12 @@
 import React, { Component } from 'react'
-import { Map, TileLayer, CircleMarker, Popup } from 'react-leaflet'
+import { Map, TileLayer, CircleMarker, Popup, GeoJSON } from 'react-leaflet'
 import * as d3 from 'd3'
 
 class App extends Component {
 
   constructor() {
     super()
-
+    this.front = this.front.bind(this)
     this.dropdownSelect = this.dropdownSelect.bind(this)
     this.onResize = this.onResize.bind(this)
     this.onClick = this.onClick.bind(this)
@@ -37,8 +37,8 @@ class App extends Component {
 
   onResize() {
     this.setState({
-      width: window.innerWidth * 0.975,
-      height: window.innerWidth / 9
+      width: window.innerWidth * 0.96,
+      height: window.innerWidth / 6
     })
   }
 
@@ -50,22 +50,36 @@ class App extends Component {
     this.setState({
       lng: event.target.dataset.lon,
       lat: event.target.dataset.lat,
-      zoom: 16
+      zoom: 17
     })
+  }
+
+  front(event) {
+//    event.preventDefault()
+    event.target.bringToBack()
   }
 
   componentDidMount() {
     console.log('cDM')
     let cmp = this
     const url = `https://cdn.glitch.com/1ffed53a-97b5-4e8d-9ce0-9a9b638459eb%2Fcombined.geojson`
+    //const url2 = `https://opendata.arcgis.com/datasets/470aa3de09244de4a3a94150b86a648b_10.geojson` //city
+    const url2 = `https://opendata.arcgis.com/datasets/4577bb8a8b5147fc86026c3c692ec8fa_9.geojson` //county
 
     d3.queue()
       .defer(d3.json, url)
-      .await((error, geoPoints) => {
+      .defer(d3.json, url2)
+      .await((error, geoPoints, countyBounds) => {
         //console.log('d3-points:', geoPoints)
+        //console.log('d3-county:', countyBounds)
+        const county = countyBounds.features.filter(county => {
+          return county.properties.COUNTY === 'Washington'
+        })
+        console.log('d3-cFilter:', county)
 
         cmp.setState({
-          points: geoPoints
+          points: geoPoints,
+          bounds: county
         })
 
       }) //end await
@@ -133,7 +147,7 @@ class App extends Component {
     const max = findMinMax(this.state.points.features)[1]
     //console.log('max', max)
 
-    const padding = {left: 20, right: 20, bottom: 2.5, top: 15}
+    const padding = {left: 75, right: 75, bottom: 2.5, top: 15}
 
     const xScale = d3.scaleLinear()
         .domain([69, max])
@@ -151,7 +165,7 @@ class App extends Component {
 
     let getRadius = d3.scaleThreshold()
       .domain([70, 80, 90, 100])
-      .range([1, 5, 10, 15, 20])
+      .range([6, 9, 12, 15, 18])
 
 
     /* map circle markers */
@@ -186,6 +200,7 @@ class App extends Component {
           fillColor={fillColor}
           color={strokeColor}
           radius={radius}
+          onContextMenu={this.front}
           >
           <Popup>
             <div className='popups'>
@@ -248,19 +263,21 @@ class App extends Component {
 
     return (
       <div>
+        <h1>Tidy Noms Map</h1>
+        <h2>Ditch dirty dining</h2>
         <select
           name={'cuisine'}
           value={this.state.cuisine}
           onChange={this.dropdownSelect}>
-          <option key={0} value={'All'}>
-            Everything
+          <option key={'search'} value={'All'}>
+            Select a cuisine
           </option>
           {cuisinesOptions}
         </select>
 
         <Map center={position} zoom={this.state.zoom}>
           <TileLayer
-            url="http://stamen-tiles-{s}.a.ssl.fastly.net/toner/{z}/{x}/{y}.{ext}"
+            url="https://stamen-tiles-{s}.a.ssl.fastly.net/toner/{z}/{x}/{y}.{ext}"
             ext="png"
             subdomains="abcd"
             minZoom={9}
@@ -268,7 +285,23 @@ class App extends Component {
             attribution="Map tiles by <a href='http://stamen.com'>Stamen Design</a>, <a href='http://creativecommons.org/licenses/by/3.0'>CC BY 3.0</a> &mdash; Map data &copy; <a href='http://www.openstreetmap.org/copyright'>OpenStreetMap</a>"
             />
 
+          <GeoJSON
+            data={this.state.bounds}
+            color='dodgerBlue' //stroke
+            fill={false}
+            weight={5}
+            opacity={1.0}
+            >
+            <Popup>
+              <div className='popups'>
+                Name: <b>{this.state.bounds[0].properties.COUNTY}</b>
+                <br/>
+              </div>
+            </Popup>
+          </GeoJSON>
+
           { mapDots }
+
         </Map>
 
         <svg width={this.state.width} height={this.state.height}>
