@@ -129,7 +129,7 @@ class App extends Component {
       for(let j = 0; j < pts.features[i].properties.cuisines.length; j++){
         cuisinesArray1.push(pts.features[i].properties.cuisines[j])
       }
-    }   
+    }
     //console.log('cA:', cuisinesArray1)
 
     let cuisinesArray = cuisinesArray1.filter((unique, index, array) => {
@@ -170,7 +170,29 @@ class App extends Component {
     console.log('cuisine data:', cuisineData)
 
 
+    /* mean */
+    let meanInspectArray = []
+    for(let m = 0; m < cuisineData.length; m++){
+      for(let n = 0; n < cuisineData[m].properties.inspections.length; n++){
+        if(typeof(cuisineData[m].properties.inspections[n].inspectScore) === 'number'){
+          meanInspectArray.push(cuisineData[m].properties.inspections[n].inspectScore)
+        }
+      }
+    }
+    //console.log('mA', meanInspectArray)
+
+    const yelpArray = cuisineData.map(score => {
+      return parseFloat(score.properties.yelpRating)
+    })
+    //console.log('yA:', yelpArray)
+
     /* d3 functions */
+    const inspectMean = d3.mean(meanInspectArray)
+    console.log('cMean:', inspectMean)
+
+    const yelpMean = d3.mean(yelpArray)
+    console.log('yMean:', yelpMean)
+
     const findMinMax = (data) => {
       return d3.extent(data, (d) => {
         return d.properties.inspections[0].inspectScore
@@ -319,6 +341,22 @@ class App extends Component {
       )
     }) //end chart
 
+    const yelpAvgLine =  (
+      <line
+        x1={xScale(yelpMean)} y1={yScale(100)}
+        x2={xScale(yelpMean)} y2={yScale(65)}
+        strokeDasharray='5, 5' strokeWidth='2' stroke='crimson'
+        />
+    )
+
+    const inspectAvgLine = (
+      <line
+        x1={xScale(1)} y1={yScale(inspectMean)}
+        x2={xScale(5)} y2={yScale(inspectMean)}
+        strokeDasharray='5, 5' strokeWidth='2' stroke='crimson'
+        />
+    )
+
     const position = [this.state.lat, this.state.lng]
 
     return (
@@ -385,6 +423,9 @@ class App extends Component {
             >
             {cuisineData.length.toLocaleString()} restaurants found
           </text>
+
+          { yelpAvgLine }
+          { inspectAvgLine }
 
         </svg>
 
