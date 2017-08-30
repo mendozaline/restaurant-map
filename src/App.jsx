@@ -2,8 +2,9 @@ import React, { Component } from 'react'
 import { Map, TileLayer, CircleMarker, Popup, GeoJSON } from 'react-leaflet'
 import * as d3 from 'd3'
 
-class App extends Component {
+const padding = {left: 28, right: 20, bottom: 50, top: 50}
 
+class App extends Component {
   constructor() {
     super()
     this.front = this.front.bind(this)
@@ -12,23 +13,22 @@ class App extends Component {
     this.onClick = this.onClick.bind(this)
 
     this.state = {
-      lat: 45.4889,
-      lng: -122.806377,
+      lat: 45.5589,
+      lng: -123.0064,
       points: null,
       zoom: 10,
-      height: 450,
-      width: 900,
+      height: null,
+      width: null,
       cuisine: 'All',
     } //end of state
 
   } //end constructor
 
   dropdownSelect(event) {
-    event.preventDefault()
     //console.log('evt', event.target)
     let name = event.target.name  //'cuisine'
     let value = event.target.value
-    //console.log(name,value)
+    //console.log(name, value)
 
     this.setState({
       [name]: value
@@ -37,16 +37,14 @@ class App extends Component {
 
   onResize() {
     this.setState({
-      width: window.innerWidth * 0.96,
-      height: window.innerWidth / 6
+      width: window.innerWidth * 0.232,
+      height: 600 //same as leaflet container
     })
   }
 
   onClick(event) {
-    event.preventDefault()
     //console.log('e.t', event.target)
     //console.log('lat:', event.target.dataset.lat)
-
     this.setState({
       lng: event.target.dataset.lon,
       lat: event.target.dataset.lat,
@@ -55,19 +53,39 @@ class App extends Component {
   }
 
   front(event) {
-//    event.preventDefault()
     event.target.bringToBack()
   }
 
+  renderAxis() {
+    const xScale = d3.scaleLinear()
+      .domain([1, 5]) //yelp
+      .range([25 + padding.left,
+              this.state.width - padding.right])
+
+    const xAxis = d3.axisBottom(xScale).ticks(5)
+
+    d3.select(this.refs.gX)
+      .call(xAxis)
+
+    const yScale = d3.scaleLinear()
+      .domain([70 - 2, 100])
+      .range([this.state.height - padding.bottom, //bottom
+              0 + padding.top]) //top
+
+    const yAxis = d3.axisLeft(yScale).ticks(5)
+
+    d3.select(this.refs.gY)
+      .call(yAxis)
+  }
+
   componentDidMount() {
-    console.log('cDM')
     let cmp = this
-    const url = `https://cdn.glitch.com/1ffed53a-97b5-4e8d-9ce0-9a9b638459eb%2Fcombined.geojson`
+    const url1 = `https://cdn.glitch.com/1ffed53a-97b5-4e8d-9ce0-9a9b638459eb%2Fcombined.geojson`
     //const url2 = `https://opendata.arcgis.com/datasets/470aa3de09244de4a3a94150b86a648b_10.geojson` //city
     const url2 = `https://opendata.arcgis.com/datasets/4577bb8a8b5147fc86026c3c692ec8fa_9.geojson` //county
 
     d3.queue()
-      .defer(d3.json, url)
+      .defer(d3.json, url1)
       .defer(d3.json, url2)
       .await((error, geoPoints, countyBounds) => {
         //console.log('d3-points:', geoPoints)
@@ -75,7 +93,7 @@ class App extends Component {
         const county = countyBounds.features.filter(county => {
           return county.properties.COUNTY === 'Washington'
         })
-        console.log('d3-cFilter:', county)
+        //console.log('d3-cFilter:', county)
 
         cmp.setState({
           points: geoPoints,
@@ -87,26 +105,34 @@ class App extends Component {
     window.addEventListener('resize', this.onResize, false)
     this.onResize()
 
+    this.renderAxis()
+
+  }
+
+  componentDidUpdate() {
+    this.renderAxis()
   }
 
   render() {
-    console.log('render')
-
     if(this.state.points == null) {
-      console.log('points: null')
       return null
     }
 
     const pts = this.state.points
-    //console.log('points:', this.state.points)
+    console.log('points:', this.state.points)
     //console.log('state.cuisine:', this.state.cuisine)
-    console.log('w', this.state.width, 'h', this.state.height)
+    //console.log('w', this.state.width, 'h', this.state.height)
 
     /* create array of cuisines to filter */
-    const cuisinesArray = pts.features.map(cuisine => {
-      const firstCuisine = cuisine.properties.cuisines[0]
-      return firstCuisine
-    }).filter((unique, index, array) => {
+    let cuisinesArray1 = []
+    for(let i = 0; i < pts.features.length; i++){
+      for(let j = 0; j < pts.features[i].properties.cuisines.length; j++){
+        cuisinesArray1.push(pts.features[i].properties.cuisines[j])
+      }
+    }   
+    //console.log('cA:', cuisinesArray1)
+
+    let cuisinesArray = cuisinesArray1.filter((unique, index, array) => {
       return array.indexOf(unique) === index
     }).sort()
     //console.log('cuisinesArray:', cuisinesArray)
@@ -126,9 +152,15 @@ class App extends Component {
         return this.state.points.features
       }
 
-      const data = pts.features.filter(type => {
-        return type.properties.cuisines[0] === cuisineSelected
-      })
+      let data = []
+      for(let k = 0; k < pts.features.length; k++){
+        for(let l = 0; l < pts.features[k].properties.cuisines.length; l++){
+          if(cuisineSelected === pts.features[k].properties.cuisines[l]){
+          data.push(pts.features[k])
+        }
+        }
+      }
+
       return data
     }
 
@@ -144,29 +176,34 @@ class App extends Component {
         return d.properties.inspections[0].inspectScore
       })
     }
+    const min = 70
+    //const min = findMinMax(this.state.points.features)[0]
     const max = findMinMax(this.state.points.features)[1]
-    //console.log('max', max)
+    //console.log('min:', min, '\nmax:', max)
 
-    const padding = {left: 75, right: 75, bottom: 2.5, top: 15}
+    //const padding = {left: 10, right: 10, bottom: 0, top: 50}
 
     const xScale = d3.scaleLinear()
-        .domain([69, max])
-        .range([0 + padding.left,
+      .domain([1, 5]) //yelp
+      .range([25 + padding.left,
                 this.state.width - padding.right])
 
+      //.domain([69, max])
+      //.range([0 + padding.left,
+                //this.state.width - padding.right])
+
     const yScale = d3.scaleLinear()
-      .domain([0, 5])
-      .range([this.state.height - padding.bottom, //bottom
-              0 + padding.top]) //top
+      .domain([min - 2, max])
+      .range([this.state.height - (padding.bottom * 2), //bottom
+              0 + padding.top ]) //top
 
     let getColor = d3.scaleThreshold()
-      .domain([70, 80, 90, 100])
-      .range(['dimGray', 'crimson', 'darkOrange', 'gold', 'limeGreen'])
+      .domain([min, 80, 90, 100])
+      .range(['dimgray', 'magenta', 'orangeRed', 'gold', 'limeGreen'])
 
     let getRadius = d3.scaleThreshold()
-      .domain([70, 80, 90, 100])
-      .range([6, 9, 12, 15, 18])
-
+      .domain([70])
+      .range([5, 10])
 
     /* map circle markers */
     const mapDots = cuisineData.map((feat, index) => {
@@ -196,6 +233,7 @@ class App extends Component {
       return (
         <CircleMarker
           key={index}
+          className={''}
           center={coord}
           fillColor={fillColor}
           color={strokeColor}
@@ -226,7 +264,7 @@ class App extends Component {
         inspectScore = score
       }
       else {
-        inspectScore = 69  //lower than min score possible
+        inspectScore = min - 2  //lower than min score possible
       }
 
       const lat = feat.geometry.coordinates[1]
@@ -235,27 +273,41 @@ class App extends Component {
       const restName = feat.properties.name
       const yelpRating = feat.properties.yelpRating
 
-      //const jitter = (Math.random() * 0.5) - 1
+      const jitter = (Math.random() * 1.0) - 0.5
       //console.log(parseFloat(jitter.toFixed(2)))
 
+      let opacity
+      if(this.state.cuisine !== 'All') {
+        opacity = 0.70
+      } else {
+        opacity = 0.125
+      }
+
       return (
-        <circle
-          key={"sc-" + index}
-          fill={getColor(inspectScore)}
-          cx={xScale(inspectScore)} //+ jitter)
-          cy={yScale(yelpRating)}
-          r={9.5}
-          opacity={0.25}
-          onClick={this.onClick}
-          data-lat={lat}
-          data-lon={lon}
-          >
-          <title>
-            Name: {restName},
-            Health score: {inspectScore !== 69 ? inspectScore : 'Not scored'},
-            Yelp Score: {yelpRating}
-          </title>
-        </circle>
+        <g key={index}>
+          <circle
+            key={'sc-' + index}
+            className={''}
+            id={'d3-' + index}
+            fill={getColor(inspectScore)}
+            cx={xScale(yelpRating)}
+            cy={yScale(inspectScore + jitter)}
+            r={9}
+            opacity={opacity}
+            stroke={'gainsboro'}
+            strokeWidth={1}
+            data-lat={lat}
+            data-lon={lon}
+            onClick={this.onClick}>
+            <title>
+              Name: {restName},
+              Health score: {inspectScore !== min-2 ? inspectScore : 'Not scored'},
+              Yelp Score: {yelpRating}
+            </title>
+          </circle>
+
+
+        </g>
       )
     }) //end chart
 
@@ -275,23 +327,23 @@ class App extends Component {
           {cuisinesOptions}
         </select>
 
-        <Map center={position} zoom={this.state.zoom}>
-          <TileLayer
-            url="https://stamen-tiles-{s}.a.ssl.fastly.net/toner/{z}/{x}/{y}.{ext}"
-            ext="png"
-            subdomains="abcd"
+        <Map
+          center={position}
+          zoom={this.state.zoom}
+          scrollWheelZoom={false}>
+          <TileLayer url="https://stamen-tiles-{s}.a.ssl.fastly.net/toner/{z}/{x}/{y}.{ext}"
+            subdomains='abcd'
+            ext='png'
             minZoom={9}
-            maxZoom={20}
-            attribution="Map tiles by <a href='http://stamen.com'>Stamen Design</a>, <a href='http://creativecommons.org/licenses/by/3.0'>CC BY 3.0</a> &mdash; Map data &copy; <a href='http://www.openstreetmap.org/copyright'>OpenStreetMap</a>"
-            />
+            maxZoom={19}
+            attribution='Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'/>
 
           <GeoJSON
             data={this.state.bounds}
-            color='dodgerBlue' //stroke
+            color='crimson' //stroke
             fill={false}
             weight={5}
-            opacity={1.0}
-            >
+            opacity={1.0}>
             <Popup>
               <div className='popups'>
                 Name: <b>{this.state.bounds[0].properties.COUNTY}</b>
@@ -306,6 +358,17 @@ class App extends Component {
 
         <svg width={this.state.width} height={this.state.height}>
           { scatterDots }
+
+          <g
+            transform={'translate(' + 0 + ',' + (this.state.height - padding.bottom) + ')'}
+            ref='gX'
+            />
+
+          <g
+            transform={'translate(' + padding.left + ',' + 0 + ')'}
+            ref='gY'
+            />
+
         </svg>
 
       </div>
