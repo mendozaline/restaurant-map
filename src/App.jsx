@@ -285,6 +285,14 @@ class App extends Component {
 
       return (
         <g key={index}>
+          <text
+            x={xScale(3)}
+            y={16}
+            textAnchor={'middle'}
+            fill={'none'}>
+            {restName}
+          </text>
+
           <circle
             key={'sc-' + index}
             className={''}
@@ -368,6 +376,15 @@ class App extends Component {
             transform={'translate(' + padding.left + ',' + 0 + ')'}
             ref='gY'
             />
+
+          <text
+            x={xScale(3)}
+            y={this.state.height - 5}
+            textAnchor={'middle'}
+            fill={'crimson'}
+            >
+            {cuisineData.length.toLocaleString()} restaurants found
+          </text>
 
         </svg>
 
