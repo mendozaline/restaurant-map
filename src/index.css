@@ -1,25 +1,52 @@
 body {
-  margin: 0;
-  padding: 0;
+  margin: 1%;
   font-family: sans-serif;
 }
 
 .leaflet-container {
-  height: 675px;
-  width: 100%;
+  border: 2px solid crimson;
+  height: 600px;
+  width: 75%;
+  float: right;
+  margin-top: 10px;
 }
+
 .popups{
   font-size: 20px;
-
 }
 
 svg {
-  border: 1px solid red;
-  margin: 1%;
+  margin: auto;
+  margin-top: 10px;
 }
 
-circle:hover {
+g:hover text {
+  opacity: 1.0;
+  fill: crimson;
+  font-size: 22px;
+  font-weight: bold;
+}
+
+g:hover circle {
   stroke: black;
-  stroke-width: 2;
-  opacity: 1.0
+  stroke-width: 2.5;
+  opacity: 1.0;
+}
+
+h1 {
+  text-align: center;
+  text-transform: uppercase;
+  color: crimson;
+}
+
+h2 {
+  text-align: center;
+  text-transform: lowercase;
+}
+
+select {
+  display: block;
+  margin: auto;
+  font-size: 22px;
+  text-align: center;
 }
