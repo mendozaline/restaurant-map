@@ -2,7 +2,7 @@ import React, { Component } from 'react'
 import { Map, TileLayer, CircleMarker, Popup, GeoJSON } from 'react-leaflet'
 import * as d3 from 'd3'
 
-const padding = {left: 28, right: 20, bottom: 50, top: 50}
+const padding = {left: 50, right: 20, bottom: 50, top: 50}
 
 class App extends Component {
   constructor() {
@@ -119,7 +119,7 @@ class App extends Component {
     }
 
     const pts = this.state.points
-    console.log('points:', this.state.points)
+    //console.log('points:', this.state.points)
     //console.log('state.cuisine:', this.state.cuisine)
     //console.log('w', this.state.width, 'h', this.state.height)
 
@@ -167,7 +167,7 @@ class App extends Component {
     //console.log(this.state.cuisine, 'data:', filterData(this.state.cuisine))
 
     const cuisineData = filterData(this.state.cuisine)
-    console.log('cuisine data:', cuisineData)
+    //console.log('cuisine data:', cuisineData)
 
 
     /* mean */
@@ -188,10 +188,10 @@ class App extends Component {
 
     /* d3 functions */
     const inspectMean = d3.mean(meanInspectArray)
-    console.log('cMean:', inspectMean)
+    //console.log('cMean:', inspectMean)
 
     const yelpMean = d3.mean(yelpArray)
-    console.log('yMean:', yelpMean)
+    //console.log('yMean:', yelpMean)
 
     const findMinMax = (data) => {
       return d3.extent(data, (d) => {
@@ -245,7 +245,7 @@ class App extends Component {
       const fillColor = getColor(inspectScore) //fill
       const strokeColor = getColor(inspectScore) //stroke
       const radius = getRadius(inspectScore)
-      const cuisine = feat.properties.cuisines[0]
+      //const cuisine = feat.properties.cuisines[0]
 
       const restName = feat.properties.name
       const yelpLink = feat.properties.yelpLink
@@ -264,13 +264,11 @@ class App extends Component {
           >
           <Popup>
             <div className='popups'>
-              Name: <b><a href={yelpLink}>{restName}</a></b>
+              Name: <b>{restName}</b>
               <br/>
-              Type: <b>{cuisine}</b>
+              Latest inspection score: <a href={`http://www.co.washington.or.us/customcf/restinsp/report.cfm?id=${feat.properties.inspections[0].inspectId}&_=${feat.properties.inspections[0].restId}`}>{formatScore}</a>
               <br/>
-              Health score: <b>{formatScore}</b>
-              <br/>
-              Yelp score: <b>{yelpRating} / 5</b>
+              Yelp score: <a href={yelpLink}>{yelpRating} / 5</a>
             </div>
           </Popup>
         </CircleMarker>
@@ -324,8 +322,6 @@ class App extends Component {
             cy={yScale(inspectScore + jitter)}
             r={9}
             opacity={opacity}
-            stroke={'gainsboro'}
-            strokeWidth={1}
             data-lat={lat}
             data-lon={lon}
             onClick={this.onClick}>
@@ -345,7 +341,7 @@ class App extends Component {
       <line
         x1={xScale(yelpMean)} y1={yScale(100)}
         x2={xScale(yelpMean)} y2={yScale(65)}
-        strokeDasharray='5, 5' strokeWidth='2' stroke='crimson'
+        strokeDasharray='5, 5' strokeWidth='2' stroke='dodgerBlue'
         />
     )
 
@@ -353,7 +349,7 @@ class App extends Component {
       <line
         x1={xScale(1)} y1={yScale(inspectMean)}
         x2={xScale(5)} y2={yScale(inspectMean)}
-        strokeDasharray='5, 5' strokeWidth='2' stroke='crimson'
+        strokeDasharray='5, 5' strokeWidth='2' stroke='dodgerBlue'
         />
     )
 
@@ -416,12 +412,33 @@ class App extends Component {
             />
 
           <text
-            x={xScale(3)}
-            y={this.state.height - 5}
-            textAnchor={'middle'}
+            x={xScale(1) - 5}
+            y={this.state.height - 55}
+            textAnchor={'start'}
             fill={'crimson'}
             >
             {cuisineData.length.toLocaleString()} restaurants found
+          </text>
+
+          <text
+            x={xScale(3)}
+            y={this.state.height - 5}
+            textAnchor={'middle'}
+            fill={'black'}
+            fontWeight={'bolder'}
+            >
+            Yelp Score
+          </text>
+
+          <text
+            x={-200}
+            y={xScale(1) - 60}
+            textAnchor={'end'}
+            fill={'black'}
+            fontWeight={'bolder'}
+            transform={'rotate(-90,' + (0) + ',' + (0) + ')'}
+            >
+            Health Inspection Score
           </text>
 
           { yelpAvgLine }
