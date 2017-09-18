@@ -20,53 +20,41 @@ svg {
 .leaflet-container {
 /*  border: 1px solid crimson;*/
   height: 600px;
-  margin: 2% 1%;
+  margin: 2% 4%;
 }
 
 .popups{
   font-size: 20px;
 }
 
-g:hover text {
-  opacity: 1.0;
-  fill: black;
-  font-weight: bold;
-}
-
-g:hover circle {
-  opacity: 1.0;
-  stroke: black;
-  stroke-width: 2;
-}
-
 .header {
   background-color: crimson;
   color: ghostwhite;
-  text-align: center;
+  text-align: left;
   width: 100%;
 }
 
 h1 {
-  padding: 1% 0 0 0;
+  font-size: 30px;
   text-transform: uppercase;
   margin: auto;
+  padding: 1% 0 1% 0;
   max-width: 1000px;
-  width: 50%;
 }
 
 h2 {
-  padding: 0 0 1% 0;
+  font-size: 25px;
   text-transform: lowercase;
   margin: auto;
+  padding: 0 0 1% 0;
   max-width: 1000px;
-  width: 50%;
 }
 
 h3 {
 /*  border: 1px solid dodgerBlue;*/
   font-size: 22px;
   font-weight: normal;
-  margin: auto;
+  margin: 1% auto;
   text-align: center;
 }
 
@@ -74,9 +62,9 @@ select {
   background-color: ghostWhite;
   border: 0 solid crimson;
   border-bottom: 5px solid crimson;
-  display: inline;
-  margin: 1% 1%;
-  font-size: 22px;
+  display: block;
+  margin: auto;
+  font-size: 20px;
   font-weight: bold;
   text-align: center;
 }
