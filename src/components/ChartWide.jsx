@@ -2,8 +2,8 @@ import React, { Component } from 'react'
 import * as d3 from 'd3'
 
 const padding = {top: 65, right: 40, bottom: 40, left: 50}
-const min = 70
-const max = 100
+const min = 70,
+      max = 100
 
 export default class ChartWide extends Component {
   constructor(props) {
@@ -11,8 +11,12 @@ export default class ChartWide extends Component {
 
     this.renderAxis = this.renderAxis.bind(this)
 
+//    this.onChartHover = this.onChartHover.bind(this)
+//    this.onChartHoverOut = this.onChartHoverOut.bind(this)
+
     this.state = { }
   }
+
 
   renderAxis() {
     const xScale = d3.scaleLinear()
@@ -37,9 +41,11 @@ export default class ChartWide extends Component {
       .call(yAxis)
   } //end renderAxis
 
+
   componentDidMount() {
     this.renderAxis()
   } // end CDM
+
 
   componentDidUpdate() {
     this.renderAxis()
@@ -52,7 +58,7 @@ export default class ChartWide extends Component {
       return null
     }
 
-    console.log('CHART props:', this.props)
+    //console.log('CHART props:', this.props)
 
     const cuisineData = this.props.filteredCuisine
 
@@ -103,9 +109,6 @@ export default class ChartWide extends Component {
         inspectScore = min - 2  //lower than min score possible
       }
 
-      const lat = feat.geometry.coordinates[1]
-      const lon = feat.geometry.coordinates[0]
-
       const restName = feat.properties.name
       const yelpRating = parseFloat(feat.properties.yelpRating)
 
@@ -115,34 +118,139 @@ export default class ChartWide extends Component {
 
       let opacity
       if(this.props.cuisine !== 'All') {
-        opacity = 0.70
+        opacity = 0.5
       } else {
-        opacity = 0.125
+        opacity = 0.1
       }
+
+      const chartRadius = 9
+
+      const onChartHover = (event) => {
+        //console.log('e:', event)
+        //console.log('e.t:', event.target)
+        //console.log('e.t.ds.i:', event.target.dataset.index)
+
+        const selectedClass = '.sameClass-' + event.target.dataset.index
+
+        //CHART
+        d3.selectAll('circle' + selectedClass)
+          .attr('r', 12)
+          .attr('stroke', 'black')
+          .attr('opacity', 1.0)
+
+        d3.selectAll('text' + selectedClass)
+          .style('fill', 'black')
+
+        //'d'
+        let currentD = d3.selectAll('path.sameClass-' + index).attr('d')
+//        console.log('H:currentPath\n|'+ currentD)
+
+        let splitD = currentD.split(',')
+//        console.log('H:splitPath\n', splitD)
+
+        let x = splitD[0].split('M')
+//        console.log('H:x\n', x)
+
+        let x1 = parseFloat(x[1])
+//        console.log('H:x1\n', x1)
+
+        let y1 = splitD[1].split('a')[0]
+//        console.log(H:'y1\n', y1)
+
+        let radius25 = 'a25,25 0 1,0 50,0 ' +
+                       'a25,25 0 1,0 -50,0'
+
+        let newD = `M${inspectScore < 70 ? x1 - 20 : x1 - 15},${y1}${radius25}`
+//        console.log('H:newD\n|'+ newD)
+
+        //MAP
+        d3.select('path' + selectedClass)
+          .attr('d', newD)
+          .style('fill', 'crimson')
+          .style('stroke', 'crimson')
+
+
+      } //end ChartHover
+
+
+      const onChartHoverOut = (event) => {
+        const selectedClass = '.sameClass-' + event.target.dataset.index
+
+        //console.log(d3.selectAll(selectedClass))
+
+        //CHART
+        d3.selectAll('circle' + selectedClass)
+          .attr('r', chartRadius)
+          .attr('stroke', this.props.color(inspectScore))
+          .attr('opacity', opacity)
+
+        d3.selectAll('text' + selectedClass)
+          .style('fill', 'none')
+
+        //'d'
+        let currentD = d3.selectAll('path.sameClass-' + index).attr('d')
+//        console.log('HO:currentPath\n|'+ currentD)
+
+        let splitD = currentD.split(',')
+//        console.log('HO:splitPath\n', splitD)
+
+        let x = splitD[0].split('M')
+//        console.log('HO:x\n', x)
+
+        let x1 = parseFloat(x[1])
+//        console.log('HO:x1\n', x1)
+
+        let y1 = splitD[1].split('a')[0]
+//        console.log('HO:y1\n', y1)
+
+        let radius5 = 'a5,5 0 1,0 10,0' +
+                      ' a5,5 0 1,0 -10,0 '
+        let radius10 = 'a10,10 0 1,0 20,0' +
+                       ' a10,10 0 1,0 -20,0 '
+
+        let newD = `M${inspectScore < 70 ? x1 + 20 : x1 + 15},${y1}${inspectScore < 70 ? radius5 : radius10 }`
+//        console.log('HO:newD\n'+ newD)
+
+
+        //MAP
+        d3.select('path' + selectedClass)
+          .attr('d', newD)
+          .style('fill', this.props.color(inspectScore))
+          .style('stroke', this.props.color(inspectScore))
+          .attr('transform', 'translate(0,0)scale(1.0)')
+
+
+      } //end ChartHoverOut
+
 
       return (
         <g key={index}>
           <text
-            x={xScale(2.5)}
+            className={'sameClass-' + index}
+            x={true ? this.props.width2 / 6 : this.props.width2 / 3}
             y={padding.top / 2}
             textAnchor={'start'}
             fill={'none'}
-            fontSize={22} >
+            fontSize={22}
+            fontWeight={'bold'} >
             {restName}
           </text>
 
           <circle
             key={'sc-' + index}
-            className={''}
-            id={'d3-' + index}
+            className={"sameClass-" + index}
+            id={'chartCircle-' + index}
+            data-index={index}
+            onMouseOver={onChartHover}
+            onMouseOut={onChartHoverOut}
+            stroke={this.props.color(inspectScore)}
+
             fill={this.props.color(inspectScore)}
             cx={xScale(yelpRating + jitterX)}
             cy={yScale(inspectScore + jitterY)}
-            r={9}
+            r={chartRadius}
             opacity={opacity}
-            data-lat={lat}
-            data-lon={lon}
-            onClick={this.onClick}>
+            onClick={this.onClick} >
             <title>
               Name: {restName},
               Health score: {inspectScore !== min-2 ? inspectScore : 'Not scored'},
@@ -179,7 +287,7 @@ export default class ChartWide extends Component {
         height={this.props.height / 1.75}
         >
         <text
-          x={xScale(2.0)}
+          x={this.props.width2 / 10}
           y={padding.top / 2}
           textAnchor={'start'}
           fill={'black'}
