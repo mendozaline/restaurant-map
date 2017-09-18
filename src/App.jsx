@@ -9,15 +9,13 @@ class App extends Component {
 
     this.onResize = this.onResize.bind(this)
     this.dropdownSelect = this.dropdownSelect.bind(this)
-//    this.front = this.front.bind(this)
 //    this.onClick = this.onClick.bind(this)
 
     this.state = {
       lat: 45.5589,
       lng: -123.0064,
-      zoom: 10,
+      zoom: 9,
       allRestData: null,
-      filterRestData: null,
       allCountyData: null,
       cuisine: 'All',
       width: null,
@@ -29,10 +27,10 @@ class App extends Component {
   dropdownSelect(event) {
     event.preventDefault()
 
-    console.log('evt', event.target)
+    //console.log('evt', event.target)
     let name = event.target.name  //'cuisine'
     let value = event.target.value
-    console.log(name, ':', value)
+    //console.log(name, ':', value)
 
     this.setState({
       [name]: value
@@ -99,7 +97,7 @@ class App extends Component {
 
     /* Filter restaurants */
     let filterCuisine = (cuisineSelected) => {
-      console.log('cs', cuisineSelected)
+      //console.log('cs', cuisineSelected)
 
       let restFts = this.state.allRestData.features // -> fts array
       if(cuisineSelected === 'All') {
@@ -115,18 +113,18 @@ class App extends Component {
           }
         }
       }
-      console.log('FC-features:', features)
+      //console.log('FC-features:', features)
       return features
     } //end filter
     let newData = filterCuisine(this.state.cuisine)
-    console.log('cuisine:', newData)
+    //console.log('cuisine:', newData)
 
     /* Filter county */
     const countyFts = this.state.allCountyData.features
     const filterCounty = countyFts.filter(county => {
       return county.properties.COUNTY === 'Washington'
     })
-    console.log('render-filter county:', filterCounty)
+    //console.log('render-filter county:', filterCounty)
 
     const filteredData = {
       filteredCounty: filterCounty,
@@ -148,7 +146,8 @@ class App extends Component {
     }
 
     const restFts = this.state.allRestData.features
-    console.log('restFts:', restFts)
+    //console.log('restFts:', restFts)
+
     /* Array of all cuisines */
     let allCuisines = []
     for(let i = 0; i < restFts.length; i++){
@@ -186,7 +185,7 @@ class App extends Component {
     return (
       <div>
         <div className='header'>
-          <h1>Tidy Noms Map (beta)</h1>
+          <h1>Tidy Noms Map</h1>
           <h2>Ditch dirty dining</h2>
         </div>
 
@@ -210,7 +209,10 @@ class App extends Component {
             width2={widthSize}
             {...filteredData} />
 
-          <MapComp {...this.state} {...filteredData} {...scales} />
+          <MapComp
+            {...this.state}
+            {...filteredData}
+            {...scales} />
         </div>
 
       </div>
