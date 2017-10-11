@@ -14,7 +14,7 @@ class App extends Component {
     this.state = {
       lat: 45.5589,
       lng: -123.0064,
-      zoom: 9,
+      zoom: 10,
       allRestData: null,
       allCountyData: null,
       cuisine: 'All',
