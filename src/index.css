@@ -2,7 +2,7 @@ body {
 /*  border: 5px solid purple;*/
   background-color: ghostWhite;
   margin: 0;
-
+  font-family: sans-serif, Arial;
 }
 
 .content {
