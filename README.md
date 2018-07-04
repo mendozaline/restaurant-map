@@ -1,5 +1,9 @@
 ## Washington County, Oregon Restaurant Map
 
+August 30, 2017
+
+Final project for Hack Oregon [Web Cartography](https://badgr.io/public/assertions/rEi_JNN5SJGHzPFCKPNkYg) class.
+
 DEMO: [https://mendozaline.github.io/restaurant-map/](https://mendozaline.github.io/restaurant-map/)
 
 ### Map Proposal
