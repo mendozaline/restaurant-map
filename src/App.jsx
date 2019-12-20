@@ -65,7 +65,7 @@ class App extends Component {
 
     let cmp = this
     const url1 = `https://cdn.glitch.com/1ffed53a-97b5-4e8d-9ce0-9a9b638459eb%2Fcombined.geojson`
-    const url2 = `https://opendata.arcgis.com/datasets/4577bb8a8b5147fc86026c3c692ec8fa_9.geojson`
+    const url2 = `https://gist.githubusercontent.com/mendozaline/6b6b2dad4f43125d9499cbdb473fcb7e/raw/48a59afaa2e7e721d308f5ac82a3fc3b1cba0ded/washington-county.geojson`
 
     d3.queue()
       .defer(d3.json, url1)
